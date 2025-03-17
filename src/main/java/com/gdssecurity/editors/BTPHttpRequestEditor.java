@@ -31,12 +31,14 @@ import com.gdssecurity.helpers.BTPConstants;
 import com.gdssecurity.helpers.BlazorHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Class to implement the "BTP" editor tab for HTTP requests

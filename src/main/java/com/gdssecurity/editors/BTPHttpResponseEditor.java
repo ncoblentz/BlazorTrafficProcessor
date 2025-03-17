@@ -27,12 +27,15 @@ import burp.api.montoya.ui.editor.extension.ExtensionProvidedHttpResponseEditor;
 import com.gdssecurity.MessageModel.GenericMessage;
 import com.gdssecurity.helpers.BTPConstants;
 import com.gdssecurity.helpers.BlazorHelper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Class to implement the "BTP" editor tab for HTTP responses
@@ -79,6 +82,7 @@ public class BTPHttpResponseEditor implements ExtensionProvidedHttpResponseEdito
         ByteArrayOutputStream outstream = new ByteArrayOutputStream();
         try {
             String jsonStrMessages = this.blazorHelper.messageArrayToString(messages);
+//            annotateProxyHistory(jsonStrMessages);
             outstream.write(jsonStrMessages.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             this.logging.logToError("[-] setRequestResponse - IOException while writing bytes to buffer: " + e.getMessage());
@@ -91,6 +95,21 @@ public class BTPHttpResponseEditor implements ExtensionProvidedHttpResponseEdito
         }
         this.editor.setContents(this.reqResp.response().withBody(ByteArray.byteArray(outstream.toByteArray())).toByteArray());
     }
+
+    /*private void annotateProxyHistory(String jsonStrMessages) {
+        String currentNotes = this.reqResp.annotations().notes();
+        LinkedList<String> notes = new LinkedList<String>();
+        notes.add(currentNotes);
+
+        JSONArray jsonArray = new JSONArray(jsonStrMessages);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            //String name = jsonObject.getString("MessageType");
+            notes.add("Type: "+jsonObject.getInt("MessageType"));
+        }
+
+        this.reqResp.annotations().setNotes(String.join(",", notes));
+    }*/
 
     /**
      * Check if the editor tab should be enabled for a given response.

@@ -16,6 +16,7 @@
 package com.gdssecurity.helpers;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.Annotations;
 import burp.api.montoya.logging.Logging;
 import com.gdssecurity.MessageModel.*;
 import org.json.JSONArray;
@@ -27,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 
 /**
@@ -186,5 +188,24 @@ public class BlazorHelper {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    public void annotateProxyHistory(Annotations annotations, String jsonStrMessages) {
+        LinkedList<String> notes = new LinkedList<String>();
+        if(!annotations.notes().isEmpty())
+            notes.add(annotations.notes());
+
+        JSONArray jsonArray = new JSONArray(jsonStrMessages);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            //String name = jsonObject.getString("MessageType");
+            int type = jsonObject.getInt("MessageType");
+            if(type==1)
+                notes.add("1: "+jsonObject.getString("Target"));
+            else
+                notes.add("Type: "+type);
+        }
+
+        annotations.setNotes(String.join(",", notes));
     }
 }

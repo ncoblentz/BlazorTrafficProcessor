@@ -17,16 +17,18 @@ package com.gdssecurity.handlers;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.HighlightColor;
+import burp.api.montoya.http.message.ContentType;
 import burp.api.montoya.http.message.MimeType;
 import burp.api.montoya.logging.Logging;
-import burp.api.montoya.proxy.http.InterceptedResponse;
-import burp.api.montoya.proxy.http.ProxyResponseHandler;
-import burp.api.montoya.proxy.http.ProxyResponseReceivedAction;
-import burp.api.montoya.proxy.http.ProxyResponseToBeSentAction;
+import burp.api.montoya.proxy.http.*;
+import com.gdssecurity.MessageModel.GenericMessage;
 import com.gdssecurity.helpers.BTPConstants;
+import com.gdssecurity.helpers.BlazorHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Class to handle the downgrade from WS to LongPolling (HTTP)
@@ -36,6 +38,8 @@ public class BTPHttpResponseHandler implements ProxyResponseHandler {
     private MontoyaApi _montoya;
     private Logging _logging;
     private JSONArray modifiedTransports;
+    private BlazorHelper blazorHelper;
+
 
     /**
      * Constructor for the BTPHttpResponseHandler object
@@ -45,6 +49,8 @@ public class BTPHttpResponseHandler implements ProxyResponseHandler {
         this._montoya = montoyaApi;
         this._logging = montoyaApi.logging();
         this.modifiedTransports = BTPConstants.DOWNGRADED_TRANSPORTS;
+        this.blazorHelper = new BlazorHelper(this._montoya);
+
     }
 
     /**
@@ -101,6 +107,21 @@ public class BTPHttpResponseHandler implements ProxyResponseHandler {
      */
     @Override
     public ProxyResponseToBeSentAction handleResponseToBeSent(InterceptedResponse interceptedResponse) {
+        if (interceptedResponse != null
+                && interceptedResponse.httpVersion() != null
+                && interceptedResponse.initiatingRequest().url() != null
+                && this._montoya.scope().isInScope(interceptedResponse.initiatingRequest().url())
+                && interceptedResponse.initiatingRequest().contentType() != ContentType.JSON
+                && interceptedResponse.initiatingRequest().url().contains(BTPConstants.BLAZOR_URL)
+                && interceptedResponse.body() != null
+                && interceptedResponse.body().length() != 0) {
+            byte[] body = interceptedResponse.body().getBytes();
+            ArrayList<GenericMessage> messages = this.blazorHelper.blazorUnpack(body);
+            String jsonStrMessages = this.blazorHelper.messageArrayToString(messages);
+            this.blazorHelper.annotateProxyHistory(interceptedResponse.annotations(),jsonStrMessages);
+        }
+
+
         return ProxyResponseToBeSentAction.continueWith(interceptedResponse);
     }
 }

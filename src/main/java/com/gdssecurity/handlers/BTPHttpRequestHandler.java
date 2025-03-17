@@ -17,11 +17,17 @@ package com.gdssecurity.handlers;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.HighlightColor;
+import burp.api.montoya.http.message.ContentType;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.proxy.http.InterceptedRequest;
 import burp.api.montoya.proxy.http.ProxyRequestHandler;
 import burp.api.montoya.proxy.http.ProxyRequestReceivedAction;
 import burp.api.montoya.proxy.http.ProxyRequestToBeSentAction;
+import com.gdssecurity.MessageModel.GenericMessage;
+import com.gdssecurity.helpers.BTPConstants;
+import com.gdssecurity.helpers.BlazorHelper;
+
+import java.util.ArrayList;
 
 /**
  * Class to handle highlighting requests that use BlazorPack
@@ -30,6 +36,7 @@ public class BTPHttpRequestHandler implements ProxyRequestHandler {
 
     private MontoyaApi _montoya;
     private Logging _logging;
+    private BlazorHelper blazorHelper;
 
     /**
      * Constructor for the request handler object
@@ -38,6 +45,7 @@ public class BTPHttpRequestHandler implements ProxyRequestHandler {
     public BTPHttpRequestHandler(MontoyaApi montoyaApi) {
         this._montoya = montoyaApi;
         this._logging = montoyaApi.logging();
+        this.blazorHelper = new BlazorHelper(this._montoya);
     }
 
     /**
@@ -62,6 +70,21 @@ public class BTPHttpRequestHandler implements ProxyRequestHandler {
      */
     @Override
     public ProxyRequestToBeSentAction handleRequestToBeSent(InterceptedRequest interceptedRequest) {
+
+        if (interceptedRequest != null
+                && interceptedRequest.httpVersion() != null
+                && interceptedRequest.url() != null
+                && this._montoya.scope().isInScope(interceptedRequest.url())
+                && interceptedRequest.contentType() != ContentType.JSON
+                && interceptedRequest.url().contains(BTPConstants.BLAZOR_URL)
+                && interceptedRequest.body() != null
+                && interceptedRequest.body().length() != 0) {
+            byte[] body = interceptedRequest.body().getBytes();
+            ArrayList<GenericMessage> messages = this.blazorHelper.blazorUnpack(body);
+            String jsonStrMessages = this.blazorHelper.messageArrayToString(messages);
+            this.blazorHelper.annotateProxyHistory(interceptedRequest.annotations(),jsonStrMessages);
+        }
+
         return ProxyRequestToBeSentAction.continueWith(interceptedRequest);
     }
 }
