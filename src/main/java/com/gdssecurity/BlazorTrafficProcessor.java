@@ -51,6 +51,11 @@ public class BlazorTrafficProcessor implements BurpExtension, ExtensionUnloading
         this._montoya.userInterface().registerHttpRequestEditorProvider(requestEditorProvider);
         this._montoya.userInterface().registerHttpResponseEditorProvider(responseEditorProvider);
 
+        BTPHttpRequestEditorProvider requestEditorProvider = new BTPHttpRequestEditorProvider(this._montoya);
+        BTPHttpResponseEditorProvider responseEditorProvider = new BTPHttpResponseEditorProvider(this._montoya);
+        this._montoya.userInterface().registerHttpRequestEditorProvider(requestEditorProvider);
+        this._montoya.userInterface().registerHttpResponseEditorProvider(responseEditorProvider);
+
         // Request/Response Handlers (for Highlighting + Downgrade WS to HTTP)
         BTPHttpResponseHandler downgradeHandler = new BTPHttpResponseHandler(this._montoya);
         this._montoya.proxy().registerResponseHandler(downgradeHandler);

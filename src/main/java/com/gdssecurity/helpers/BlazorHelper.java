@@ -200,12 +200,42 @@ public class BlazorHelper {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
             //String name = jsonObject.getString("MessageType");
             int type = jsonObject.getInt("MessageType");
-            if(type==1)
-                notes.add("1: "+jsonObject.getString("Target"));
+            StringBuilder builder = new StringBuilder();
+            if(type==1) {
+                String target = jsonObject.getString("Target");
+                builder.append(target).append("->");
+                //notes.add("1: " + target);
+                JSONArray argumentsArray = jsonObject.getJSONArray("Arguments");
+                switch(target) {
+                    case "BeginInvokeDotNetFromJS":
+                        if(argumentsArray.length()>=3) {
+                            builder.append(argumentsArray.getString(2)).append("->");
+                         /*   if (argumentsArray.length() >= 4)
+                                builder.append(argumentsArray.getString(4));*/
+                        }
+                        break;
+                    case "JS.BeginInvokeJS":
+                        if(argumentsArray.length()>=2) {
+                            builder.append(argumentsArray.getString(1));//.append("->");
+/*                            if (argumentsArray.length() >= 3) {
+                                var argument1 = argumentsArray.optJSONArray(2);
+                                if(argument1!=null && argument1.length()>1)
+                                    builder.append(argument1.getString(1));
+                            }*/
+                        }
+                        break;
+                    case "LogClientMessage":
+
+                        break;
+
+                }
+
+                notes.add(builder.toString());
+            }
             else
                 notes.add("Type: "+type);
         }
 
-        annotations.setNotes(String.join(",", notes));
+        annotations.setNotes(String.join("\n", notes));
     }
 }

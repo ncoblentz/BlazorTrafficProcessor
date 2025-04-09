@@ -61,9 +61,9 @@ public class BTPHttpResponseHandler implements ProxyResponseHandler {
     @Override
     public ProxyResponseReceivedAction handleResponseReceived(InterceptedResponse interceptedResponse) {
         // Highlight
-        if (interceptedResponse.statedMimeType() == MimeType.APPLICATION_UNKNOWN && interceptedResponse.body().length() != 0) {
+        /*if (interceptedResponse.statedMimeType() == MimeType.APPLICATION_UNKNOWN && interceptedResponse.body().length() != 0) {
             interceptedResponse.annotations().setHighlightColor(HighlightColor.CYAN);
-        }
+        }*/
 
         // Handle Blazor Negotiation
         if (!interceptedResponse.initiatingRequest().url().contains(BTPConstants.NEGOTIATE_URL) || interceptedResponse.statedMimeType() != MimeType.JSON) {
